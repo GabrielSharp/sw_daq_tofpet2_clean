@@ -118,7 +118,7 @@ elif [[ $osPrettyName == "rhel" && $osVersion == 9 ]]; then
 fi;
 
 # Install ROOT from source -- for UBUNTU only
-installROOT=1;
+installROOT=0;
 rootVersion=`root-config --version | sed 's/\(^[0-9]\).*/\1/'`;
 if [ $rootVersion -ge 6 ] && [ $osPrettyName == "ubuntu" ]; then
 	echo "WARNING: Found ROOT $rootVersion installation. Do you wish to install ROOT again from source?"

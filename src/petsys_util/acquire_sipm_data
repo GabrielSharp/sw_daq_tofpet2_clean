@@ -16,6 +16,8 @@ def main():
 	parser.add_argument("--time", type=float, required=True, help="Acquisition time (in seconds)")
 	parser.add_argument("--mode", type=str, required=True, choices=["tot", "qdc", "mixed"], help = "Acquisition mode (tot, qdc or mixed)")
 	parser.add_argument("--enable-hw-trigger", dest="hwTrigger", action="store_true", help="Enable the hardware coincidence filter")
+	parser.add_argument("--enable-ext-trigger", dest="extTrigger", required=False, action="store_true", help="Enable external trigger for time stamping and gating")
+	parser.add_argument("--ext-delay", type=int, dest="extDelay", required=False, help="Set delay (in clock cycles) for external trigger, positive if gate signal comes after the event")
 	parser.add_argument("--param-table", type=str, dest="paramTable", help="Table containing the name and values of 1 or 2 parameters to be scanned during data acquisition. Allowed parameters are: OV (SIPM Overvoltage), vth_t1 (t1 discriminator threshold, in DAC units relative to the channel baseline), vth_t2 (t2 discriminator threshold, in DAC units relative to the channel baseline), vth_e (e discriminator threshold, in DAC units relative to the channel baseline), disc_lsb_t1 (t1 discriminator DAC LSB)")
 	parser.add_argument("--wait-on", dest="waitOn", type=str, help="Wait on named pipe before acquiring data")
 	parser.add_argument("--portID",  type=int, required=False, help="Set target FEBD port ID")
@@ -65,6 +67,11 @@ def main():
 		conn.initializeSystem()
 	
 	systemConfig.loadToHardware(conn, bias_enable=config.APPLY_BIAS_ON, hw_trigger_enable=args.hwTrigger, qdc_mode = args.mode)
+
+	if args.extTrigger:
+		conn.write_config_register_tgr(1, 0x0298, 0b0) # Enable time tagging,	 0b0==OFF
+		conn.write_config_register_tgr(1, 0x0202, 0b0) # Enable gating,			0b1==ON
+		conn.write_config_register_tgr(10,0x294, 512+args.extDelay)  # Set gating delay
 
 	if args.waitOn:
 		conn.waitOnNamedPipe(args.waitOn)

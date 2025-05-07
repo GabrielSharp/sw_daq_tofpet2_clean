@@ -256,6 +256,12 @@ void DataFileWriter::writeSingleEvents(EventBuffer<Hit> *buffer, double t0) {
     long long filePartIndex = (int)floor(buffer->getTMin() / fileSplitTime);
     checkFilePartForSplit(filePartIndex);
     
+    float p0, p1, p2, p3;
+    p0 = 8.0;
+    p1 = 1.04676;
+    p2 = 1.02734;
+    p3 = 0.31909;
+
     long long tMin = (buffer->getTMin() + t0 - fileEpoch) * (long long)Tps;
 
     int N = buffer->getSize();
@@ -276,7 +282,8 @@ void DataFileWriter::writeSingleEvents(EventBuffer<Hit> *buffer, double t0) {
             brTime = ((long long)(hit.time * Tps)) + tMin;
             brChannelID = hit.raw->channelID;
             brToT = (hit.timeEnd - hit.time) * Tps;
-            brEnergy = hit.energy * Eunit;
+            //brEnergy = hit.energy * Eunit;
+	    brEnergy = (p0*pow(p1, pow(hit.energy, p2))+p3*hit.energy-p0) * Eunit; //non-linearity correction
             brTacID = hit.raw->tacID;
             brTQT = hit.raw->time - hit.time;
             brTQE = (hit.raw->timeEnd - hit.timeEnd);
